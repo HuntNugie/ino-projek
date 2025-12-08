@@ -52,30 +52,6 @@ String getUid() {
 }
 
 
-//void reqLogin(uid){
-//  String loginServer = server+"/api/rfid/auth/login"
-//}
-
-void reqRegister(String uid,String user_id){
-  String registerServer = server+"/api/auth/rfid/register/"+uid+"/"+user_id;
-  http.begin(wifi,registerServer);;
-  DynamicJsonDocument doc(200);
-  
-  int httpResponseCode = http.GET();
-  if(httpResponseCode > 0){
-    String response = http.getString();
-    DynamicJsonDocument dok(200);
-    String res = doc["message"];
-    Serial.println(response);
-    
-  }else{
-    String response = http.getString();
-    Serial.println(response);
-  }
-  http.end();
-  return;
-}
-
 void setup() {
 
   Serial.begin(115200);
@@ -101,8 +77,8 @@ void loop() {
     String uid = getUid();
     String modeServer = server+"/mode/status-mode";
     String modeUser = "";
-    String user_id = "";
-  
+
+//  ini untuk mengambil mode 
     http.begin(wifi,modeServer);
     int httpresponseCode = http.GET();
     if(httpresponseCode > 0){
@@ -110,17 +86,27 @@ void loop() {
       DynamicJsonDocument doc(200);
       deserializeJson(doc,response);
       modeUser = doc["mode"].as<String>();
-      user_id = doc["user_id"].as<String>();
    }else{
       String response = http.getString();
       Serial.println(response);
   }
-  http.end();
-  
-    if(modeUser == "register"){
-      reqRegister(uid,user_id);
+   http.end();
+//  untuk mengupdate mode
+    if(modeUser == "register" || modeUser == "login"){
+      String updateModeServer = server+"/mode/set-status/true/"+uid;
+      http.begin(wifi,updateModeServer);
+      int httpResponseCodeUpdate = http.GET();
+      if(httpResponseCodeUpdate > 0){
+        String response = http.getString();
+        Serial.println(response);
+      }else{
+         String response = http.getString();
+        Serial.println(response);
+      }
+    }else{
+      Serial.println("sedang tidak memilih menu");  
     }
-
+    http.end();
   } else {
     WiFi.reconnect();
     Serial.println("sedang menyambungkan");
